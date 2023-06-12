@@ -102,28 +102,6 @@ def jira_gettask_bystatus ( json_data, task_status ):
         raise Exception('Task status "' + task_status + '" not in ', jira_task_statuses)
     return res
 
-
-# #
-# # OLD VERSION !!!
-# def jira_search ( text ):
-#     query = 'text~"' + text + '"'
-#     url = 'https://' + jira_host + jira_api['base_url'] + jira_api['search'] + query
-#     print ( url )
-#     res = get_request( url, {'username':'xxxxxx', 'password':'xxxxxxx'})
-#     json_data = res.json()
-#     print  'Total: ',json_data['total']
-#     res = []
-#     if json_data['total'] >= 1:
-#         res = []
-#         for issue in json_data['issues']:
-#             fields = issue['fields']
-#             if fields['status']['name'] != 'Closed' and not re.search ('EASYWP' ,issue['key']):
-#                res.append ( {'key':issue['key'], 'created':fields['created'], 
-#                     'summary':fields['summary'], 'status':fields['status']['name']} )
-#     else:
-#         return False
-#     return res
-
 def jira_search_test ( search_url , text, login_credentials, processor_function, task_status ):
     query = 'text~"' + text + '"'
     search_url += query
@@ -135,20 +113,6 @@ def jira_search_test ( search_url , text, login_credentials, processor_function,
         return processor_function(json_data, task_status)
     else:
         return False
-
-
-#def jira_active_tasks ( json_data ):
-#    res = []
-#    for issue in json_data['issues']:
-#        fields = issue['fields']
-#        if fields['status']['name'] != 'Closed' and not re.search ('EASYWP' ,issue['key']):
-#            res.append ( {'key':issue['key'], 'created':fields['created'], 
-#                'summary':fields['summary'], 'status':fields['status']['name']} )
-#    return res
-    
-#
-# Return concatenated Jira task URL by a card ID
-#
 
 def get_card_url ( card_id ):
     return "https://" + jira_host + "/browse/" + card_id 
@@ -357,13 +321,8 @@ try:
     dpt_search_tickets ( staffapi_obj ,kayako_departments ["EasyWP"], status_ids ["escalated"], test_run = False )
     time.sleep (5)
     
-    #wait = html_common_element ('sub', ' wait for it')
- #   flock_send_flockml ( wait, color = colors['wait'])
-    #flock_send_html ( wait, color = colors['wait'], height = 40 )
     time.sleep (5)
 
- #   emoji = get_random_emoji(emoji_list)
- #   flock_send_flockml ( html_common_element ('i', 'Boop ') + emoji, color = colors ['boop'] )
     dpt_search_tickets ( staffapi_obj ,kayako_departments ["PE"], status_ids ["escalated"], test_run = False )
 
     time.sleep (5)
