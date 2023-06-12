@@ -1,25 +1,16 @@
 #!/usr/bin/python
-#
 import os,sys,re,json,traceback,random,time
 import xml.etree.ElementTree as ET
 import requests as req
-#
 from xml.dom import minidom
 from flockos import Attachment,Views,HtmlView
 from emoji_list import emoji_list
 from staffapi.defines import *
 from staffapi.staffapi_class import *
 from staffapi.functions.common_functions import *
-#
-
 ENV = 'production'
-#ENV = 'testing'
 br = '<br>'
 row_height = 35
-
-#
-# Basic HTML functions
-#
 def html_link ( text, href, target='_blank' ):
     a = ET.Element('a')
     a.text = text
@@ -36,16 +27,10 @@ def html_common_element (tag ,text, attrib = None, style = None ):
         a.attrib['style'] = style 
     return ET.tostring(a)
 
-# 
-# XML funct
-#
-
 def xml_to_ticketslist(xml_data):
     root = ET.fromstring ( xml_data )
     return root.findall("./tickets/ticket")
-#
-# Kayako Tickets functions
-#
+
 def find_notask_tickets ( xml_data ):
     keys_pattern = '|'.join (jira_keys)
     print jira_keys
@@ -75,10 +60,6 @@ def search_tickets ( xml_data, with_task = True ):
         if found == 0:
             result.append ( ticket )
     return result
-
-#
-# Jira tasks functions
-#
 
 def jira_gettask_bystatus ( json_data, task_status ):
     if task_status in jira_task_statuses:
@@ -117,17 +98,11 @@ def jira_search_test ( search_url , text, login_credentials, processor_function,
 def get_card_url ( card_id ):
     return "https://" + jira_host + "/browse/" + card_id 
 
-#
-# Main searching function
-#
-
 def dpt_search_tickets (staffapi_obj, department_id, status_id, test_run = None ):
-    
     if department_id == 44:
         service_name = "Jira/Trello: "
     else:
         service_name = "Jira: "
-    
     for key,val in kayako_departments.items():
         if val == department_id:
             department_name = key
@@ -136,11 +111,7 @@ def dpt_search_tickets (staffapi_obj, department_id, status_id, test_run = None 
             department_status = key
     start_message = "Checking " + department_name + " -- " + department_status
     start_message = "<b>" + start_message + "</b>"
-    #flock_send_html ( start_message ) 
     flock_send_flockml ( start_message ) 
-
-#    staffapi_obj = staffapi()
-    
     tickets_list = staffapi_obj.ticket_list( department_id, status_id, limit = 1000, sortby = "lastactivity", wantticketdata = 1 )
     if test_run:
         notask_tickets = ET.fromstring(tickets_list).findall('./tickets/ticket')
@@ -157,7 +128,6 @@ def dpt_search_tickets (staffapi_obj, department_id, status_id, test_run = None 
             html_hyperlink = html_link ( ticket ,kayako_url['ticket_view'] + ticket_id )
             html_data.append ( html_common_element ('b','Kayako: ') + html_hyperlink )
             print ticket
-            #jira_res = jira_search ( ticket )
             jira_res = jira_search_test ( jira_url['search'], ticket, 
                     jira_login_credentials, jira_gettask_bystatus, 'not_closed' )
             print "Jira_res = ",jira_res
@@ -189,13 +159,10 @@ def dpt_search_tickets (staffapi_obj, department_id, status_id, test_run = None 
         color = colors['end']['not_found']
 	html_data = "No tickets found! | " + html_data
     html_data = html_common_element ( 'u' , html_data )
-    #flock_send_html(html_data, color = color)
     flock_send_flockml (html_data, color = color)
-
     print 'total: ',total_tickets 
 
 def flock_send_flockml_html (html_data, flockml_data, html_height = row_height, html_width = 800, color = None):
-    
     views = Views()
     views.flockml = (flockml_data)
     views.html = HtmlView (inline=html_data, height=html_height, width=html_width)
@@ -203,7 +170,6 @@ def flock_send_flockml_html (html_data, flockml_data, html_height = row_height, 
         attachment = Attachment ( views=views, color=color)
     else:
         attachment = Attachment( views=views )
-
     attachment = { "attachments": [ attachment.to_dict() ]}
     print json.dumps ( attachment, indent = 5 )
     headers = { 'Content-Type' : 'application/json' }
@@ -216,7 +182,6 @@ def flock_send_html ( html_data, height = row_height, width = 800, color = None,
         attachment = Attachment ( views=views, color=color)
     else:
         attachment = Attachment( views=views )
-    
     if send:
         attachment = { "attachments": [ attachment.to_dict() ]}
         print json.dumps ( attachment, indent = 5 )
@@ -306,28 +271,19 @@ webhook_urls = {
 }
 jira_task_statuses = ['active','not_closed','closed']
 jira_login_credentials = {'username':'USERNAME', 'password':'PASSWORD'}
-
 trello_host = "trello.com"
-
 error_min_height = 135
 webhook_url = webhook_urls[ENV]
-
 jira_keys = ('CF','EASYWP','PE','TO','ASP','NCPPE','PHWS', 'DVLS')
 
 try:
-    
     staffapi_obj = staffapi()
-    
     dpt_search_tickets ( staffapi_obj ,kayako_departments ["EasyWP"], status_ids ["escalated"], test_run = False )
     time.sleep (5)
-    
     time.sleep (5)
-
     dpt_search_tickets ( staffapi_obj ,kayako_departments ["PE"], status_ids ["escalated"], test_run = False )
-
     time.sleep (5)
     dpt_search_tickets ( staffapi_obj ,kayako_departments ["Hosting_Support"], status_ids ["escalated"], test_run = False )
-    
     time.sleep (5)
     dpt_search_tickets ( staffapi_obj ,kayako_departments ["CDN"], status_ids ["escalated"], test_run = False )
 
@@ -337,7 +293,6 @@ except:
     for key in excinfo:
         if isinstance ( key, traceback.types.TracebackType ):
             trace = traceback.format_tb(key)
-
     trace = trace.__str__().replace('\\n',br)
     n_newline = trace.count(br)
     print "N_newline = ",n_newline
