@@ -12,8 +12,8 @@ from staffapi.staffapi_class import *
 from staffapi.functions.common_functions import *
 #
 
-#ENV = 'production'
-ENV = 'testing'
+ENV = 'production'
+#ENV = 'testing'
 br = '<br>'
 row_height = 35
 
