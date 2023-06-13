@@ -1,0 +1,24 @@
+#!/usr/bin/python
+# LOGIN module for StaffAPI
+
+from common_functions import *
+
+
+def staffapi_request_login(login_credentials):
+    req_url = defines.API_BASE_URL + defines.API_ENDPOINTS['login'];
+    req_result = post_request(req_url, login_credentials);
+    return parse_xml(req_result);
+
+
+def main(login_credentials=defines.API_LOGIN_DATA):
+    # print 'In main: ',login_credentials
+    child_dictionary = staffapi_request_login(login_credentials);
+
+    if child_dictionary['status'] == '-1':
+        raise Exception(child_dictionary);
+        return False
+    elif child_dictionary['status'] == '1':
+        return child_dictionary;
+    else:
+        raise Exception('Can\'t determine whether log in has been successful');
+        return False
