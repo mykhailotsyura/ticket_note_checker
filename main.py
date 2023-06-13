@@ -122,76 +122,78 @@ def get_card_url(card_id):
 
 
 # Main searching function
-def dpt_search_tickets(staffapi_obj, department_id, status_id, test_run=None):
-    global department_status, department_name
+def dpt_search_tickets (staffapi_obj, department_id, status_id, test_run = None ):
+
     if department_id == 44:
         service_name = "Jira/Trello: "
     else:
         service_name = "Jira: "
 
-    for key, val in kayako_departments.items():
+    for key,val in kayako_departments.items():
         if val == department_id:
             department_name = key
-    for key, val in status_ids.items():
+    for key,val in status_ids.items():
         if val == status_id:
             department_status = key
     start_message = "Checking " + department_name + " -- " + department_status
     start_message = "<b>" + start_message + "</b>"
-    flock_send_flockml(start_message)
+    #flock_send_html ( start_message )
+    flock_send_flockml ( start_message )
 
+#    staffapi_obj = staffapi()
 
-    tickets_list = staffapi_obj.ticket_list(department_id, status_id, limit=1000, sortby="lastactivity",
-                                            wantticketdata=1)
+    tickets_list = staffapi_obj.ticket_list( department_id, status_id, limit = 1000, sortby = "lastactivity", wantticketdata = 1 )
     if test_run:
         notask_tickets = ET.fromstring(tickets_list).findall('./tickets/ticket')
     else:
-        notask_tickets = find_notask_tickets(tickets_list)
+        notask_tickets = find_notask_tickets ( tickets_list )
 
-    print(notask_tickets)
-    if len(notask_tickets) >= 1:
+    print notask_tickets
+    if len ( notask_tickets ) >= 1:
         found = True
         for elem in notask_tickets:
             html_data = []
             ticket_id = elem.attrib['id']
             ticket = elem.find('displayid').text
-            html_hyperlink = html_link(ticket, kayako_url['ticket_view'] + ticket_id)
-            html_data.append(html_common_element('b', 'Kayako: ') + html_hyperlink)
-            print(ticket)
-
-            jira_res = jira_search_test(jira_url['search'], ticket, jira_login_credentials, jira_gettask_bystatus, 'not_closed')
-            print("Jira_res = ", jira_res)
+            html_hyperlink = html_link ( ticket ,kayako_url['ticket_view'] + ticket_id )
+            html_data.append ( html_common_element ('b','Kayako: ') + html_hyperlink )
+            print ticket
+            #jira_res = jira_search ( ticket )
+            jira_res = jira_search_test ( jira_url['search'], ticket,
+                    jira_login_credentials, jira_gettask_bystatus, 'not_closed' )
+            print "Jira_res = ",jira_res
             if jira_res:
-                for i, res_elem in enumerate(jira_res):
+                for i,res_elem in enumerate (jira_res):
                     i = 0
-                    for key, val in res_elem.items():
+                    for key,val in res_elem.items():
                         if i == 0:
-                            key = html_common_element('b', "Jira: ") + key
+                            key = html_common_element ('b', "Jira: " ) + key
                             i += 1
                         if key == "key":
-                            val = html_link(val, get_card_url(val))
-                        html_data.append(key + ": " + val)
+                            val = html_link ( val, get_card_url(val) )
+                        html_data.append ( key + ": " + val)
             else:
-                html_data.append(html_common_element('b', service_name) + "No active cards found by the ticket ID")
-            height = len(html_data) * 25
-            print("HTML_DATA = ", html_data)
-            print("HEIGHT = ", height)
+                html_data.append ( html_common_element ('b', service_name ) + "No active cards found by the ticket ID" )
+            height = len (html_data) * 25
+            print "HTML_DATA = ",html_data
+            print "HEIGHT = ",height
             html_data = br.join(html_data)
-
-            flock_send_flockml(html_data, color=colors['intermediate'])
+            #flock_send_html ( html_data, height = height, color = colors['intermediate'])            flock_send_flockml ( html_data, color = colors['intermediate'])
     else:
         found = False
-    total_tickets = len(ET.fromstring(tickets_list).findall('./tickets/ticket'))
+    total_tickets = len( ET.fromstring ( tickets_list).findall('./tickets/ticket') )
     html_data = "Tickets in total in " + department_name + " " + department_status + ": " + str(total_tickets)
     if found:
         color = colors['end']['found']
     else:
         color = colors['end']['not_found']
-    html_data = "No tickets found! | " + html_data
-    html_data = html_common_element('u', html_data)
+        html_data = "No tickets found! | " + html_data
+    html_data = html_common_element ( 'u' , html_data )
+    #flock_send_html(html_data, color = color)
+    flock_send_flockml (html_data, color = color)
 
-    flock_send_flockml(html_data, color=color)
+    print 'total: ',total_tickets
 
-    print('total: ', total_tickets)
 
 
 def flock_send_flockml_html(html_data, flockml_data, html_height=row_height, html_width=800, color=None):
@@ -327,7 +329,7 @@ try:
 
     time.sleep(5)
 
-    
+
     dpt_search_tickets(staffapi_obj, kayako_departments["PE"], status_ids["escalated"], test_run=False)
 
     time.sleep(5)
